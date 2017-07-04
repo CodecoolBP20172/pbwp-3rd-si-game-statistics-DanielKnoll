@@ -1,3 +1,5 @@
+import sys
+import datetime
 
 
 def read_file(file_name, simple_string_is_enough):
@@ -13,7 +15,7 @@ def read_file(file_name, simple_string_is_enough):
     else:
         error = check_errors_in_file(file, file_name)
         if error != "No errors":
-            exit(error)
+            sys.exit(error)
 
         if simple_string_is_enough:
             game_infos = convert_file_to_string(file)
@@ -24,14 +26,69 @@ def read_file(file_name, simple_string_is_enough):
 
 
 def check_errors_in_file(file, file_name):
-    """Next task"""
+    """Input error handling. First I check if the lines contains less/more values.
+    Then I check if the sold copies is a number or not, or has unrealistic value.
+    Then I check if the year is a number, or valid year, or from the past or from the future.
+    Title, genre, publisher can be whatever. Although I could add a txt file with genres and check
+    if the input is from those.
+    """
     for line_num, line in enumerate(file):
         if line.count("\t") != 4:
             return "InputError: You have incorrect number of values in line " \
                    + str(line_num) + " in " + file_name \
                    + "\nExpected values: title->total copies sold->release date->genre->publisher↲"
+
+        current_line = line[:-1].split("\t")
+
+        converted_sold_copy = check_conversion_error(current_line[1], line_num, file_name)
+        if type(converted_sold_copy) == str:
+            return converted_sold_copy
+        elif converted_sold_copy > 500:
+            return "InputError: You have too high second value for sold copies in line " \
+                   + str(line_num + 1) + " in " + file_name \
+                   + "\nAccording to Wikipedia not even Tetris reached 500M."
+        elif converted_sold_copy < 0.1:
+            return "InputError: Why even borher with niche games like " \
+                   + current_line[0] + " in line " + str(line_num + 1) + " in " + file_name \
+                   + "\nTake that line out! We are dealing with big guns here!"
+
+        converted_release_date = check_conversion_error(current_line[2], line_num, file_name)
+        if type(converted_release_date) == str:
+            return converted_release_date
+        elif (len(str(converted_release_date)) != 4) or (str(converted_release_date)[0] not in ("1", "2") or (
+              converted_release_date < 0)):
+            return "InputError: You have a number at the third value in line " \
+                   + str(line_num + 1) + " in " + file_name \
+                   + "which is not a valid year."
+        elif converted_release_date < 1958:
+            return "InputError: You have an earlier game release date than Pong (1958) in line " \
+                   + str(line_num + 1) + " in " + file_name
+        elif converted_release_date > datetime.date.today().year:
+            return "InputError: You have a game which released in the future in line " \
+                   + str(line_num + 1) + " in " + file_name
+
     file.seek(0)
     return "No errors"
+
+
+def check_conversion_error(lst_value_str, line_num, file_name):
+    """ I made a function instead of using two slightly different error handling"""
+    outputs = {
+               "copies": ["float(lst_value_str)", "second"],
+               "year": ["int(lst_value_str)", "third"],
+              }
+    if (lst_value_str[0] in ("1", "2")) and (len(lst_value_str) >= 4) and ("." not in lst_value_str):
+        key = "year"
+    else:
+        key = "copies"
+    try:
+        convertable_value = eval(outputs[key][0])
+    except ValueError:
+        error_message = "You have letters/symbols in the " + outputs[key][1] \
+                        + " value at line " + str(line_num + 1) + " in " + file_name
+        return error_message
+    else:
+        return convertable_value
 
 
 def convert_file_to_string(file):
@@ -46,7 +103,7 @@ def convert_file_to_dict(file):
     simple commands if I store the columns in separate lists. I used the property names as keys
     so it will be easier to read the code.
     Since the information categories are in the same order as in the file I could append the right
-    value to the right dictionary key. The game informations will bein the same indexes but in
+    value to the right dictionary key. The game informations will be in the same indexes but in
     different lists.
     I got rid of the '\n' with a slice command at the end of each line, and split the line at tabulators.
     """
@@ -158,40 +215,24 @@ def get_genres(file_name):
 
 
 def when_was_top_sold_fps(file_name):
-    """I could use the advantage of the same types in one list solution here too. But the error handlings
-    makes it harder to read.
+    """I could use the advantage of the same types in one list solution here too. The conversion error handling
+    for this part is moved to the input file reading part. But just in case...
     """
     game_infos_dict = read_file(file_name, simple_string_is_enough=False)
     top_sell = 0.0
     game_index = 0
     for index, value in enumerate(game_infos_dict["genres"]):
         if value == "First-person shooter":
-            game_sold = check_conversion_error(game_infos_dict["copies sold lst"][index], index, file_name)
-            if type(game_sold) == str:
-                return game_sold
-            elif game_sold > top_sell:
+            try:
+                game_sold = float(game_infos_dict["copies sold lst"][index])
+            except ValueError:
+                return "You did something with my primary error handling, didn't you?"
+            if game_sold > top_sell:
                 top_sell = game_sold
                 game_index = index
-
-    year_of_top_sold_FPS = check_conversion_error(game_infos_dict["release dates"][game_index], game_index, file_name)
-    return year_of_top_sold_FPS
-
-
-def check_conversion_error(lst_value_str, index, file_name):
-    """ I made a function instead of using two slightly different error handling"""
-    outputs = {
-               "copies": ["float(lst_value_str)", "second"],
-               "year": ["int(lst_value_str)", "third"],
-              }
-    if (lst_value_str[0] in ("1", "2")) and (len(lst_value_str) == 4) and ("." not in lst_value_str):
-        key = "year"
-    else:
-        key = "copies"
     try:
-        convertable_value = eval(outputs[key][0])
+        year_of_top_sold_FPS = int(game_infos_dict["release dates"][game_index])
     except ValueError:
-        error_message = "You have letters/symbols in the " + outputs[key][1] \
-                        + " value at line " + str(index + 1) + " in " + file_name
-        return error_message
-    else:
-        return convertable_value
+        return "Use my primary error handling!"
+
+    return year_of_top_sold_FPS
