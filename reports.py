@@ -2,7 +2,7 @@
 
 def read_file(file_name, simple_string_is_enough):
     """In the first version the file reading used with open, but I found out that some functions
-    can return the correct value from a simple string. So I made two separate reader. One returns
+    can return the correct value from a simple string. So I made two separate readers. One returns
     a string the other returns a dictionary. In order to do that I had to keep open the file
     until the return command. At least in this case there is only one line in the try.
     """
@@ -11,12 +11,27 @@ def read_file(file_name, simple_string_is_enough):
     except FileNotFoundError:
         return "The game_stat.txt file is missing, or incorrect filename given."
     else:
+        error = check_errors_in_file(file, file_name)
+        if error != "No errors":
+            exit(error)
+
         if simple_string_is_enough:
             game_infos = convert_file_to_string(file)
         else:
             game_infos = convert_file_to_dict(file)
         file.close()
         return game_infos
+
+
+def check_errors_in_file(file, file_name):
+    """Next task"""
+    for line_num, line in enumerate(file):
+        if line.count("\t") != 4:
+            return "InputError: You have incorrect number of values in line " \
+                   + str(line_num) + " in " + file_name \
+                   + "\nExpected values: title->total copies sold->release date->genre->publisher↲"
+    file.seek(0)
+    return "No errors"
 
 
 def convert_file_to_string(file):
@@ -40,19 +55,12 @@ def convert_file_to_dict(file):
     for key in info_categories:
         game_infos_dict.update({key: []})
 
-    line_counter_for_errors = 1
     for line in file:
-        line_counter_for_errors = check_errors_in_line(line, line_counter_for_errors)
         one_game = line[:-1].split("\t")
         for index, value in enumerate(one_game):
             game_infos_dict[info_categories[index]].append(value)
 
     return game_infos_dict
-
-
-def check_errors_in_line(line, line_counter_for_errors):
-    """Next task"""
-    pass
 
 
 def count_games(file_name):
@@ -118,7 +126,7 @@ def sort_abc(file_name):
 
 
 def bubble_sort(lists):
-    """Had to add the lower() to the comperation for get_genres for the right order.
+    """Had to add the lower() to the comparison for get_genres to return the right order.
     So this function can only sort strings now.
     """
     for i in range(len(lists)-1, 0, -1):
@@ -150,7 +158,7 @@ def get_genres(file_name):
 
 
 def when_was_top_sold_fps(file_name):
-    """I could use the advantage of the same types in one list solution here too. But the error handelings
+    """I could use the advantage of the same types in one list solution here too. But the error handlings
     makes it harder to read.
     """
     game_infos_dict = read_file(file_name, simple_string_is_enough=False)
@@ -158,17 +166,32 @@ def when_was_top_sold_fps(file_name):
     game_index = 0
     for index, value in enumerate(game_infos_dict["genres"]):
         if value == "First-person shooter":
-            try:
-                game_sold = float(game_infos_dict["copies sold lst"][index])
-            except ValueError:
-                return "You have letters/symbols in the second value at line " + str(index + 1) + " in " + file_name
-
-            if game_sold > top_sell:
+            game_sold = check_conversion_error(game_infos_dict["copies sold lst"][index], index, file_name)
+            if type(game_sold) == str:
+                return game_sold
+            elif game_sold > top_sell:
                 top_sell = game_sold
                 game_index = index
-    try:
-        year_of_top_sold_game = int(game_infos_dict["release dates"][game_index])
-    except ValueError:
-        return "You have letters/symbols in the third value at line " + str(game_index + 1) + " in " + file_name
 
-    return year_of_top_sold_game
+    year_of_top_sold_FPS = check_conversion_error(game_infos_dict["release dates"][game_index], game_index, file_name)
+    return year_of_top_sold_FPS
+
+
+def check_conversion_error(lst_value_str, index, file_name):
+    """ I made a function instead of using two slightly different error handling"""
+    outputs = {
+               "copies": ["float(lst_value_str)", "second"],
+               "year": ["int(lst_value_str)", "third"],
+              }
+    if (lst_value_str[0] in ("1", "2")) and (len(lst_value_str) == 4) and ("." not in lst_value_str):
+        key = "year"
+    else:
+        key = "copies"
+    try:
+        convertable_value = eval(outputs[key][0])
+    except ValueError:
+        error_message = "You have letters/symbols in the " + outputs[key][1] \
+                        + " value at line " + str(index + 1) + " in " + file_name
+        return error_message
+    else:
+        return convertable_value
