@@ -3,11 +3,7 @@ import datetime
 
 
 def read_file(file_name, simple_string_is_enough):
-    """In the first version the file reading used with open, but I found out that some functions
-    can return the correct value from a simple string. So I made two separate readers. One returns
-    a string the other returns a dictionary. In order to do that I had to keep open the file
-    until the return command. At least in this case there is only one line in the try.
-    """
+    """Reader with input error handling. It can return two different type from the file"""
     try:
         file = open(file_name)
     except FileNotFoundError:
@@ -26,11 +22,8 @@ def read_file(file_name, simple_string_is_enough):
 
 
 def check_errors_in_file(file, file_name):
-    """Input error handling. First I check if the lines contains less/more values.
-    Then I check if the sold copies is a number or not, or has unrealistic value.
-    Then I check if the year is a number, or valid year, or from the past or from the future.
-    Title, genre, publisher can be whatever. Although I could add a txt file with genres and check
-    if the input is from those.
+    """Input error handling. Checks if the colunm number per line, sold copies, release date
+    is not valid. If it finds any error exits the program with a message.
     """
     for line_num, line in enumerate(file):
         if line.count("\t") != 4:
@@ -72,7 +65,7 @@ def check_errors_in_file(file, file_name):
 
 
 def check_conversion_error(lst_value_str, line_num, file_name):
-    """ I made a function instead of using two slightly different error handling"""
+    """ Float and int convertion error handler in one function."""
     outputs = {
                "copies": ["float(lst_value_str)", "second"],
                "year": ["int(lst_value_str)", "third"],
@@ -92,20 +85,14 @@ def check_conversion_error(lst_value_str, line_num, file_name):
 
 
 def convert_file_to_string(file):
-    """For the first two questions for example f I can simply return a string to work with."""
+    """For some questions a simple string is enough to work with."""
     game_infos_string = file.read()
     return game_infos_string
 
 
 def convert_file_to_dict(file):
-    """For the most of the questions the program will create a dictionary for each function call.
-    Instead of doing the obvious and storing the file line by line in lists I figured I can use
-    simple commands if I store the columns in separate lists. I used the property names as keys
-    so it will be easier to read the code.
-    Since the information categories are in the same order as in the file I could append the right
-    value to the right dictionary key. The game informations will be in the same indexes but in
-    different lists.
-    I got rid of the '\n' with a slice command at the end of each line, and split the line at tabulators.
+    """Returns a dictionary with same properties in one list. Information about a single
+    game will be stored in the same list index under different keys.
     """
     game_infos_dict = {}
     info_categories = ["titles", "copies sold lst", "release dates", "genres", "publishers"]

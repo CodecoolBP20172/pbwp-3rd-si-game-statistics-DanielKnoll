@@ -11,60 +11,78 @@ def input_values():
     return file_name, year, genre, title
 
 
-def get_QA_count_games(file_name):
-    return "How many games are in the file?", reports.count_games(file_name)
+def print_count_games(file_name):
+    question = "How many games are in the file?"
+    answer = reports.count_games(file_name)
+    my_pretty_print(question, answer, type(answer))
 
 
-def get_QA_decide(file_name, year):
-    return "Is there a game from year {}?".format(year), reports.decide(file_name, year)
+def print_decide(file_name, year):
+    question = "Is there a game from year {}?".format(year)
+    answer = reports.decide(file_name, year)
+    my_pretty_print(question, answer, type(answer))
 
 
-def get_QA_get_latest(file_name):
-    return "Which was the latest game?", reports.get_latest(file_name)
+def print_get_latest(file_name):
+    question = "Which was the latest game?"
+    answer = reports.get_latest(file_name)
+    my_pretty_print(question, answer, type(answer))
 
 
-def get_QA_count_by_genre(file_name, genre):
-    return "How many {} games do we have?".format(genre), reports.count_by_genre(file_name, genre)
+def print_count_by_genre(file_name, genre):
+    question = "How many {} games do we have?".format(genre)
+    answer = reports.count_by_genre(file_name, genre)
+    my_pretty_print(question, answer, type(answer))
 
 
-def get_QA_get_line_number_by_title(file_name, title):
-    return "What is the line number of {}?".format(title), reports.get_line_number_by_title(file_name, title)
+def print_get_line_number_by_title(file_name, title):
+    question = "What is the line number of {}?".format(title)
+    answer = reports.get_line_number_by_title(file_name, title)
+    my_pretty_print(question, answer, type(answer))
 
 
-def get_QA_sort_abc(file_name):
-    return "What is the alphabetical ordered list of the titles?", reports.sort_abc(file_name)
+def print_sort_abc(file_name):
+    question = "What is the alphabetical ordered list of the titles?"
+    answer = reports.sort_abc(file_name)
+    my_pretty_print(question, answer, type(answer))
 
 
-def get_QA_get_genres(file_name):
-    return "What are the genres?", reports.get_genres(file_name)
+def print_get_genres(file_name):
+    question = "What are the genres?"
+    answer = reports.get_genres(file_name)
+    my_pretty_print(question, answer, type(answer))
 
 
-def get_QA_when_was_top_sold_fps(file_name):
-    return ("What is the release date of the top sold 'First-person shooter' game?",
-            reports.when_was_top_sold_fps(file_name))
+def print_when_was_top_sold_fps(file_name):
+    question = "What is the release date of the top sold 'First-person shooter' game?"
+    answer = reports.when_was_top_sold_fps(file_name)
+    my_pretty_print(question, answer, type(answer))
 
 
-def pretty_it_up(func):
-    print("-"*70+"\nQuestion:{:^60}".format(func[0]))
-    if type(func[1]) == list:
-        print("Answer:")
-        pprint.pprint(func[1], indent=30)
-    elif type(func[1]) == bool:
-        print("{:36}{}".format("Answer:", func[1]))
-    else:
-        print("Answer: {:^60}".format(func[1]))
+def my_pretty_print(question, answer, answer_type):
+    """Formated output. Prints a different answer output according the type of the answer"""
+    answer_printers = {
+                    list: ["print()", "pprint.pprint(answer, indent=36)"],
+                    bool: ["print('{:36}{}'.format(' ', answer))"],
+                    "else": ["print(' {:^75}'.format(answer))"],
+                    }
+    print("-"*85+"\nQuestion:{:^75}\nAnswer:".format(question), end="")
+    if answer_type not in (list, bool):
+        answer_type = "else"
+    for command in answer_printers[answer_type]:
+        eval(command)
 
 
 def main():
-    inputs = input_values()
-    pretty_it_up(get_QA_count_games(inputs[0]))
-    pretty_it_up(get_QA_decide(inputs[0], inputs[1]))
-    pretty_it_up(get_QA_get_latest(inputs[0]))
-    pretty_it_up(get_QA_count_by_genre(inputs[0], inputs[2]))
-    pretty_it_up(get_QA_get_line_number_by_title(inputs[0], inputs[3]))
-    pretty_it_up(get_QA_sort_abc(inputs[0]))
-    pretty_it_up(get_QA_get_genres(inputs[0]))
-    pretty_it_up(get_QA_when_was_top_sold_fps(inputs[0]))
+    file_name, year, genre, title = input_values()
+    print_count_games(file_name)
+    print_decide(file_name, year)
+    print_get_latest(file_name)
+    print_count_by_genre(file_name, genre)
+    print_get_line_number_by_title(file_name, title)
+    print_sort_abc(file_name)
+    print_get_genres(file_name)
+    print_when_was_top_sold_fps(file_name)
 
 if __name__ == '__main__':
     sys.exit(main())
