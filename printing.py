@@ -70,7 +70,7 @@ def my_pretty_print(question, answer, answer_type):
     if answer_type not in (list, bool):
         answer_type = "else"
     for command in answer_printers[answer_type]:
-        eval(command)
+        exec(command)
 
 
 def main():
