@@ -17,7 +17,8 @@ def get_answers(inputs):
                str(reports.count_longest_title(file_name)) + "\n" +
                str(reports.get_date_avg(file_name)) + "\n" +
                str(reports.get_game(file_name, title)) + "\n" +
-               str(reports.count_grouped_by_genre(file_name)) + "\n")
+               str(reports.count_grouped_by_genre(file_name)) + "\n" +
+               str(reports.get_date_ordered(file_name)) + "\n")
     return answers
 
 
