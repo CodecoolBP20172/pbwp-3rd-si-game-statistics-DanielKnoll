@@ -45,7 +45,7 @@ def check_errors_in_file(preferences_string, file_name):
     return "No errors"
 
 
-def conversion_or_check_error(value_str, index, line_num, file_name, error_check):
+def conversion_or_check_error(value_str, index, line_num, file_name):
     """ Float and int conversion error handler in one function.
     The dictionary is to get rid of the elif case.
     """
